@@ -281,17 +281,26 @@ async def google_callback(request: Request, db: DbDep) -> Any:
         await db.execute(select(User).where(User.email == email.lower()))
     ).scalar_one_or_none()
 
-    if not user:
-        user = User(
-            name=info.get("name") or email.split("@")[0],
-            email=email,
-            image=info.get("picture"),
-            google_id=info.get("sub"),
-            is_email_verified=True,
-            role=role,
-            is_approved=None if role == Role.owner else None,
-        )
-        db.add(user)
+    if not user or user.is_deleted:
+        if user:
+            # Re-activate soft-deleted account
+            user.is_deleted = False
+            user.deleted_at = None
+            user.google_id = info.get("sub")
+            if info.get("picture"):
+                user.image = info["picture"]
+            user.is_email_verified = True
+        else:
+            user = User(
+                name=info.get("name") or email.split("@")[0],
+                email=email,
+                image=info.get("picture"),
+                google_id=info.get("sub"),
+                is_email_verified=True,
+                role=role,
+                is_approved=None if role == Role.owner else None,
+            )
+            db.add(user)
         await db.flush()
     else:
         if not user.google_id:
