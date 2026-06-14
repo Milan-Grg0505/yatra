@@ -237,10 +237,14 @@ async def reset_password(body: ResetPasswordRequest, db: DbDep) -> dict[str, Any
 
 
 @router.get("/google")
-async def google_login(request: Request) -> Any:
+async def google_login(request: Request, role: str = "user") -> Any:
     if "google" not in oauth._clients:
         raise BadRequest("Google OAuth not configured")
 
+    if role not in ("user", "owner"):
+        role = "user"
+
+    request.session["oauth_role"] = role
     redirect_uri = settings.GOOGLE_REDIRECT_URI
     return await oauth.google.authorize_redirect(request, redirect_uri)
 
@@ -262,6 +266,9 @@ async def google_callback(request: Request, db: DbDep) -> Any:
     if not email:
         return RedirectResponse(f"{settings.FRONTEND_URL}/auth/login?error=no_email")
 
+    role_param = request.session.pop("oauth_role", "user")
+    role = Role.owner if role_param == "owner" else Role.user
+
     user = (
         await db.execute(select(User).where(User.email == email.lower()))
     ).scalar_one_or_none()
@@ -273,7 +280,8 @@ async def google_callback(request: Request, db: DbDep) -> Any:
             image=info.get("picture"),
             google_id=info.get("sub"),
             is_email_verified=True,
-            role=Role.user,
+            role=role,
+            is_approved=None if role == Role.owner else None,
         )
         db.add(user)
         await db.flush()

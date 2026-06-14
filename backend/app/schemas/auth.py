@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, EmailStr, Field
@@ -36,8 +35,6 @@ class UserPublic(ORMModel):
     is_approved: bool | None = None
     preferences: dict
     travel_style: list[str]
-    created_at: datetime | None = None
-    updated_at: datetime | None = None
 
 
 class LoginResponse(BaseModel):

@@ -182,7 +182,7 @@ export function RegisterPage() {
 
 
       <Button variant="outline" fullWidth size="lg" asChild>
-        <a href={`${SERVER_URL}/api/auth/google`}>
+        <a href={`${SERVER_URL}/api/v1/auth/google?role=${role}`}>
           <FcGoogle className="h-5 w-5" />
           Continue with Google
         </a>
