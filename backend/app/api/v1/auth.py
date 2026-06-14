@@ -57,7 +57,11 @@ async def register(
     request: Request, body: RegisterRequest, db: DbDep
 ) -> dict[str, Any]:
     exists = (
-        await db.execute(select(User).where(User.email == body.email.lower()))
+        await db.execute(
+            select(User).where(
+                User.email == body.email.lower(), User.is_deleted == False
+            )
+        )
     ).scalar_one_or_none()
     if exists:
         raise Conflict("An account with this email already exists.")
