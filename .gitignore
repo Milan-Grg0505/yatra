@@ -1,0 +1,60 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+*.so
+
+# --- Node ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm/
+
+# --- React / Vite ---
+client/dist/
+client/build/
+server/dist/
+
+# --- Environment files ---
+.env
+.env.local
+.env.*.local
+
+# --- IDE / Editor ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# --- OS ---
+Thumbs.db
+Desktop.ini
+
+# --- Uploads / media ---
+backend/media/
+backend/static/uploads/
+
+# --- Logs ---
+*.log
+logs/
+
+# --- Alembic (keep only migration scripts) ---
+backend/alembic/__pycache__/
+
+# --- Misc ---
+*.sqlite3
+*.db
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+coverage/
+htmlcov/
