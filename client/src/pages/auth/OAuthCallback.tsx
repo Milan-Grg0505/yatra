@@ -15,6 +15,7 @@ interface JWTPayload {
   name?: string;
   email?: string;
   role?: string;
+  is_approved?: boolean | null;
   exp?: number;
 }
 
@@ -64,6 +65,7 @@ export function OAuthCallback() {
         name: decoded.name || 'User',
         email: decoded.email || '',
         role: (decoded.role || 'user') as 'user' | 'owner' | 'admin',
+        is_approved: decoded.is_approved ?? null,
         phone: undefined,
         address: undefined,
         image: undefined,

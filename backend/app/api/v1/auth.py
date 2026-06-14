@@ -115,7 +115,11 @@ async def login(request: Request, body: LoginRequest, db: DbDep) -> dict[str, An
     if user.is_deleted:
         raise Unauthorized("Account disabled")
 
-    access = create_access_token(subject=user.id, role=user.role.value)
+    access = create_access_token(
+        subject=user.id,
+        role=user.role.value,
+        extra={"name": user.name, "email": user.email, "is_approved": user.is_approved},
+    )
     refresh = create_refresh_token(subject=user.id)
     payload = decode_token(refresh, expected_type="refresh")
 
@@ -297,7 +301,11 @@ async def google_callback(request: Request, db: DbDep) -> Any:
         user.is_email_verified = True
     # Generate tokens
 
-    access = create_access_token(subject=user.id, role=user.role.value)
+    access = create_access_token(
+        subject=user.id,
+        role=user.role.value,
+        extra={"name": user.name, "email": user.email, "is_approved": user.is_approved},
+    )
     refresh = create_refresh_token(subject=user.id)
     payload = decode_token(refresh, expected_type="refresh")
 
