@@ -98,8 +98,8 @@ async def get_room(db: DbDep, room_id: uuid.UUID):
 async def create_room(
     body: RoomCreate, me: OwnerAdminUser, db: DbDep
 ) -> dict[str, Any]:
-    hotel = await db.execute(
-        select(Hotel).where(Hotel.id == body.hotel_id)
+    hotel = (
+        await db.execute(select(Hotel).where(Hotel.id == body.hotel_id))
     ).scalar_one_or_none()
     if not hotel:
         raise NotFound("Hotel not found")
