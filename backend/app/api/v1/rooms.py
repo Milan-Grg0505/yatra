@@ -1,5 +1,4 @@
 from app.schemas.room import RoomUpdate
-from app.utils.cloudinary_util import upload_image
 from app.core.exceptions import Forbidden
 from app.models.enums import Role
 from app.models import Hotel
@@ -97,7 +96,7 @@ async def get_room(db: DbDep, room_id: uuid.UUID):
 
 @router.post("/add", status_code=status.HTTP_201_CREATED)
 async def create_room(
-    body: RoomCreate, me: OwnerAdminUser, db: DbDep, images: list[UploadFile] = []
+    body: RoomCreate, me: OwnerAdminUser, db: DbDep
 ) -> dict[str, Any]:
     hotel = await db.execute(
         select(Hotel).where(Hotel.id == body.hotel_id)
@@ -109,15 +108,6 @@ async def create_room(
         raise Forbidden("Not your hotel")
 
     room = Room(**body.model_dump())
-    if images:
-        urls: list[str] = []
-        for img in images:
-            contents = await img.read()
-            if not contents:
-                continue
-            uploaded = await upload_image(contents, folder=f"yatra/rooms/{hotel.id}")
-            urls.append(uploaded["url"])
-        room.images = urls
     db.add(room)
     await db.commit()
     await db.refresh(room)
