@@ -10,15 +10,19 @@ export const roomApi = {
   available: (params: { hotel_id: string; check_in: string; check_out: string; num?: number }) =>
     api.get<unknown, ApiResponse<Room[]>>('/rooms/available', { params }),
 
-  create: (formData: FormData) =>
-    api.post<unknown, ApiResponse<Room>>('/rooms/add', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
+  create: (data: Record<string, unknown> | FormData) => {
+    const isForm = data instanceof FormData;
+    return api.post<unknown, ApiResponse<Room>>('/rooms/add', data, {
+      headers: isForm ? { 'Content-Type': 'multipart/form-data' } : undefined,
+    });
+  },
 
-  update: (id: string, formData: FormData) =>
-    api.put<unknown, ApiResponse<Room>>(`/rooms/edit/${id}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
+  update: (id: string, data: Record<string, unknown> | FormData) => {
+    const isForm = data instanceof FormData;
+    return api.put<unknown, ApiResponse<Room>>(`/rooms/edit/${id}`, data, {
+      headers: isForm ? { 'Content-Type': 'multipart/form-data' } : undefined,
+    });
+  },
 
   delete: (id: string) => api.delete<unknown, ApiResponse<void>>(`/rooms/delete/${id}`),
 
