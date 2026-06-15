@@ -11,7 +11,6 @@ from pydantic import BaseModel, EmailStr, Field
 
 from app.models.enums import CancellationPolicy, HotelStatus, HotelType
 from app.schemas._shared import ORMModel
-from app.schemas.room import RoomOut
 
 
 # ------------------------------ Catalog -------------------------------------
@@ -164,7 +163,6 @@ class HotelOut(ORMModel):
     facilities: list[FacilityOut] = []
     policies: list[PolicyOut] = []
     photos: list[PhotoOut] = []
-    rooms: list[RoomOut] = []
 
 
 class SortBy(str, Enum):

@@ -33,6 +33,7 @@ from app.schemas.hotel import (
     PriceBreakdown,
     PricePredictRequest,
 )
+from app.schemas.room import RoomOut
 
 # from app.services import pricing_service, recommendation_service
 from app.utils.cloudinary_util import delete_image, upload_image
@@ -220,7 +221,12 @@ async def get(db: DbDep, hotel_id: uuid.UUID) -> dict[str, Any]:
     )
     if not row:
         raise NotFound("Hotel not found")
-    return ok(_serialize(row))
+    data = _serialize(row)
+    data["rooms"] = [
+        RoomOut.model_validate(r).model_dump(mode="json")
+        for r in (row.rooms or [])
+    ]
+    return ok(data)
 
 
 # ---------------------------------------------------------------------------
