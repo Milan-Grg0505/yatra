@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom';
 import {
   LuLayoutDashboard,
@@ -16,6 +16,7 @@ import {
   LuMenu,
   LuChartBar,
   LuChevronLeft,
+  LuCamera,
 } from 'react-icons/lu';
 import { Avatar, Button, Logo, ThemeToggle } from '@/components/atoms';
 import { ConfirmModal, NotificationBell } from '@/components/molecules';
@@ -25,6 +26,7 @@ import { logoutThunk } from '@/features/thunks/authThunks';
 import { selectUi, toggleSidebar } from '@/features/slices/uiSlice';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { hotelApi } from '@/api/hotel.api';
 
 interface DashboardLayoutProps {
   variant: 'owner' | 'admin';
@@ -36,6 +38,12 @@ export function DashboardLayout({ variant }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const { sidebarCollapsed } = useAppSelector(selectUi);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+  const [hasHotels, setHasHotels] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (!isOwner) return;
+    hotelApi.my().then((res) => setHasHotels((res.data ?? []).length > 0)).catch(() => setHasHotels(false));
+  }, [isOwner]);
 
   const handleLogout = async () => {
     setLogoutConfirmOpen(false);
@@ -56,6 +64,7 @@ export function DashboardLayout({ variant }: DashboardLayoutProps) {
     { to: ROUTES.ADMIN.DASHBOARD, icon: LuLayoutDashboard, label: 'Dashboard' },
     { to: ROUTES.ADMIN.USERS, icon: LuUsers, label: 'Users' },
     { to: ROUTES.ADMIN.HOTELS, icon: LuHotel, label: 'Hotels' },
+    { to: ROUTES.ADMIN.HEROES, icon: LuCamera, label: 'Heroes' },
     { to: ROUTES.ADMIN.APPROVE_HOTELS, icon: LuBuilding, label: 'Approve Hotels' },
     { to: ROUTES.ADMIN.BOOKINGS, icon: LuTicket, label: 'Bookings' },
     { to: ROUTES.ADMIN.REVIEWS, icon: LuStar, label: 'Reviews' },
@@ -139,7 +148,7 @@ export function DashboardLayout({ variant }: DashboardLayoutProps) {
           </div>
           <div className="flex items-center gap-1">
 
-            {isAuthenticated && isOwner && user?.is_email_verified && (
+            {isAuthenticated && isOwner && user?.is_email_verified && hasHotels === false && (
               <Button asChild variant="outline" size="sm">
                 <Link to={ROUTES.OWNER.REGISTER_PROPERTY}>Register Property</Link>
               </Button>
