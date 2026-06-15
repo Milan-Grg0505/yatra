@@ -35,6 +35,7 @@ export const ROUTES = {
     DASHBOARD: '/admin/dashboard',
     USERS: '/admin/users',
     HOTELS: '/admin/hotels',
+    HEROES: '/admin/heroes',
     APPROVE_HOTELS: '/admin/hotels/approve',
     BOOKINGS: '/admin/bookings',
     REVIEWS: '/admin/reviews',

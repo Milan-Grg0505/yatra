@@ -172,6 +172,7 @@ export const heroSchema = z.object({
   link: z.string().url().optional().or(z.literal('')),
   order: z.coerce.number().default(0),
   active: z.boolean().default(true),
+  image: z.string().optional(),
 });
 
 export const couponSchema = z.object({

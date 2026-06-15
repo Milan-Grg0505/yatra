@@ -241,9 +241,8 @@ async def admin_add_user(
         role=body.role,
         is_email_verified=True,
     )
-    db.add(user)
     await db.commit()
-    return ok(UserOut.model_validate(user).model_dump(mode="json"))
+    await db.refresh(user)
 
 
 @router.put("/edit/{user_id}")
@@ -258,6 +257,7 @@ async def admin_edit_user(
     for k, v in body.model_dump(exclude_unset=True).items():
         setattr(user, k, v)
     await db.commit()
+    await db.refresh(user)
     return ok(UserOut.model_validate(user).model_dump(mode="json"))
 
 

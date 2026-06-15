@@ -32,7 +32,8 @@ export interface ResourceManagerProps<T extends Record<string, any>> {
   modalSize?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   /** Hide the Add button (e.g. read-only resources). */
   canAdd?: boolean;
-  /** Extra controls rendered beside the Add button. */
+  /** Extra actions renderer per row (optional). */
+  extraActions?: (row: T) => ReactNode;
   toolbar?: ReactNode;
 }
 
@@ -59,6 +60,7 @@ export function ResourceManager<T extends Record<string, any>>({
   modalSize = 'lg',
   canAdd = true,
   toolbar,
+  extraActions,
 }: ResourceManagerProps<T>) {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<T | null>(null);
@@ -93,6 +95,7 @@ export function ResourceManager<T extends Record<string, any>>({
             <LuTrash2 className="h-4 w-4 text-danger" />
           </Button>
         )}
+        {extraActions && extraActions(row)}
       </div>
     ),
   };

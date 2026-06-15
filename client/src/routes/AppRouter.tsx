@@ -32,7 +32,7 @@ import { PackageDetailPage } from '@/pages/user/PackageDetailPage';
 import { OwnerDashboard } from '@/pages/owner/OwnerDashboard';
 import { RegisterPropertyPage } from '@/pages/owner/RegisterPropertyPage';
 import { OwnerHotelsPage } from '@/pages/owner/OwnerHotelsPage';
-// import { ManageRoomsPage } from '@/pages/owner/ManageRoomsPage';
+import { ManageRoomsPage } from '@/pages/owner/ManageRoomsPage';
 // import { OwnerBookingsPage } from '@/pages/owner/OwnerBookingsPage';
 // import { OwnerReviewsPage } from '@/pages/owner/OwnerReviewsPage';
 // import { OwnerAnalyticsPage } from '@/pages/owner/OwnerAnalyticsPage';
@@ -41,6 +41,7 @@ import { OwnerHotelsPage } from '@/pages/owner/OwnerHotelsPage';
 import { AdminDashboard } from '@/pages/admin/AdminDashboard';
 import { AdminUsersPage } from '@/pages/admin/AdminUsersPage';
 import { AdminHotelsPage, ApproveHotelsPage } from '@/pages/admin/AdminHotelPage';
+import { AdminHeroPage } from '@/pages/admin/AdminHeroPage';
 // import { AdminBookingsPage } from '@/pages/admin/AdminBookingsPage';
 import { AdminReviewsPage } from '@/pages/admin/AdminReviewsPage';
 import { AdminTravelPackagesPage } from '@/pages/admin/AdminTravelPackagesPage';
@@ -103,8 +104,8 @@ export function AppRouter() {
         <Route path={ROUTES.OWNER.DASHBOARD} element={<OwnerDashboard />} />
         <Route path={ROUTES.OWNER.REGISTER_PROPERTY} element={<RegisterPropertyPage />} />
         <Route path={ROUTES.OWNER.HOTELS} element={<OwnerHotelsPage />} />
-        {/* 
         <Route path="/owner/hotels/:id/rooms" element={<ManageRoomsPage />} />
+        {/* 
         <Route path={ROUTES.OWNER.BOOKINGS} element={<OwnerBookingsPage />} />
         <Route path={ROUTES.OWNER.REVIEWS} element={<OwnerReviewsPage />} />
         <Route path={ROUTES.OWNER.ANALYTICS} element={<OwnerAnalyticsPage />} /> */}
@@ -122,6 +123,7 @@ export function AppRouter() {
         <Route path={ROUTES.ADMIN.USERS} element={<AdminUsersPage />} />
         <Route path={ROUTES.ADMIN.HOTELS} element={<AdminHotelsPage />} />
         <Route path={ROUTES.ADMIN.APPROVE_HOTELS} element={<ApproveHotelsPage />} />
+        <Route path={ROUTES.ADMIN.HEROES} element={<AdminHeroPage />} />
         {/* 
         <Route path={ROUTES.ADMIN.BOOKINGS} element={<AdminBookingsPage />} />
         */}
