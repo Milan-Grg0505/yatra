@@ -112,13 +112,13 @@ export interface Room {
   hotel_id: string;
   room_type: 'single' | 'double' | 'suite' | 'deluxe' | 'family' | 'other';
   room_name: string;
-  numberOf_rooms: number;
+  number_of_rooms: number;
   bed_type: 'single' | 'double' | 'queen' | 'king' | 'bunk' | 'sofa' | 'other';
-  numberOf_beds: number;
+  number_of_beds: number;
   smoking_policy: 'smoking' | 'non-smoking' | 'both';
   base_price: number;
   max_guest: number;
-  roomSize?: string;
+  room_size?: string;
   services: Service[] | string[];
   discount_percentage: number;
   weekend_price?: number;

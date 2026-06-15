@@ -199,7 +199,7 @@ export function HotelDetailPage() {
                           </p>
                           <div className="mt-2 flex flex-wrap gap-2 text-xs text-text-2">
                             <span className="inline-flex items-center gap-1"><LuUsers className="h-3 w-3" />{r.max_guest} guests</span>
-                            <span className="inline-flex items-center gap-1"><LuBedDouble className="h-3 w-3" />{r.numberOf_beds} beds</span>
+                            <span className="inline-flex items-center gap-1"><LuBedDouble className="h-3 w-3" />{r.number_of_beds} beds</span>
                             {Object.entries(FEATURED_AMENITIES).map(([k, v]) =>
                               (r as any)[k] ? (
                                 <span key={k} className="inline-flex items-center gap-1">
