@@ -50,6 +50,7 @@ export function PendingHotelsPage() {
     try {
       const res = await dispatch(updateHotelStatusThunk({ id: h.id, status }));
       if (updateHotelStatusThunk.fulfilled.match(res)) {
+        setHotels((prev) => prev.map((x) => (x.id === h.id ? { ...x, status } : x)));
         toast.success(`${h.name} ${status === 'approved' ? 'approved' : 'rejected'}`);
         // Best-effort notify the owner (non-blocking)
         notificationApi
