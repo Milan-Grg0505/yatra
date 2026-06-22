@@ -4,15 +4,14 @@ import {
   LuArrowLeft, LuCheck, LuX, LuEye, LuBuilding2, LuMapPin, LuMail, LuPhone, LuClock,
 } from 'react-icons/lu';
 import { toast } from 'sonner';
-import { Avatar, Badge, Button, Spinner } from '@/components/atoms';
+import { Badge, Button, Spinner } from '@/components/atoms';
 import { Modal } from '@/components/atoms/Modal';
 import { Breadcrumbs } from '@/components/molecules/Breadcrumbs';
-import { useAppDispatch, useAppSelector } from '@/hooks';
-import { selectHotel } from '@/features/slices/hotelSlice';
+import { useAppDispatch } from '@/hooks';
 import {
-  fetchHotelsThunk,
   updateHotelStatusThunk,
 } from '@/features/thunks/hotelThunks';
+import { hotelApi } from '@/api/hotel.api';
 import { notificationApi } from '@/api/notification.api';
 import { cn, formatDate, statusColor } from '@/lib/utils';
 import { ROUTES } from '@/lib/constant';
@@ -30,15 +29,16 @@ import type { Hotel } from '@/types';
  */
 export function PendingHotelsPage() {
   const dispatch = useAppDispatch();
-  const { hotels, loading } = useAppSelector(selectHotel);
+  const [hotels, setHotels] = useState<Hotel[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'pending' | 'approved' | 'rejected' | 'all'>('pending');
   const [busy, setBusy] = useState<string | null>(null);
   const [previewing, setPreviewing] = useState<Hotel | null>(null);
 
   useEffect(() => {
-    // Load every hotel; we filter in-memory so the admin can flip between buckets fast.
-    dispatch(fetchHotelsThunk({ page: 1, limit: 200 }));
-  }, [dispatch]);
+    setLoading(true);
+    hotelApi.manage(1, 200).then((res) => setHotels(res.data ?? [])).catch(() => toast.error('Failed to load hotels')).finally(() => setLoading(false));
+  }, []);
 
   const visible = useMemo(
     () => (filter === 'all' ? hotels : hotels.filter((h) => h.status === filter)),
@@ -284,7 +284,7 @@ function HotelDetailsView({ hotel }: { hotel: Hotel }) {
             <ul className="text-sm space-y-1">
               {hotel.rooms.map((r) => (
                 <li key={r.id} className="flex justify-between">
-                  <span>{r.room_name} <span className="text-text-3">×{r.numberOf_rooms}</span></span>
+                  <span>{r.room_name} <span className="text-text-3">×{r.number_of_rooms}</span></span>
                   <span className="font-medium">NPR {r.base_price}</span>
                 </li>
               ))}
