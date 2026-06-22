@@ -330,6 +330,7 @@ export type NotificationType =
   | 'payment_failed'
   | 'hotel_approved'
   | 'hotel_rejected'
+  | 'hotel_registered'
   | 'travel_booking'
   | 'system';
 

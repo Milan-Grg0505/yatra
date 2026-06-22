@@ -20,10 +20,12 @@ from app.api.deps import (
 )
 from app.core.exceptions import BadRequest, Forbidden, NotFound
 from app.core.responses import ok
-from app.models.enums import HotelStatus, Role
+from app.models.enums import HotelStatus, NotificationType, Role
 from app.models.hotel import Facility, Hotel, Photo
 from app.models.location import City
 from app.models.room import Room
+from app.models.content import Notification
+from app.models.user import User
 from app.schemas.hotel import (
     HotelCreate,
     HotelOut,
@@ -55,9 +57,9 @@ async def _parse_hotel_update(request: Request) -> HotelUpdate:
         if not values or isinstance(values[0], UploadFile):
             continue
         
-        if key == "facilities[]":
+        if key in ("facilities[]", "facility_ids[]", "facility_ids"):
             data["facility_ids"] = values
-        elif key == "policies[]":
+        elif key in ("policies[]", "policy_ids[]", "policy_ids"):
             data["policy_ids"] = values
         else:
             val = values[0]
@@ -73,9 +75,9 @@ async def _parse_hotel_create(request: Request) -> HotelCreate:
         if not values or isinstance(values[0], UploadFile):
             continue
             
-        if key == "facilities[]":
+        if key in ("facilities[]", "facility_ids[]", "facility_ids"):
             data["facility_ids"] = values
-        elif key == "policies[]":
+        elif key in ("policies[]", "policy_ids[]", "policy_ids"):
             data["policy_ids"] = values
         else:
             val = values[0]
@@ -102,6 +104,28 @@ async def list_hotels(
             Hotel.is_deleted == False,  # noqa: E712
         )
         .order_by(Hotel.popularity_score.desc(), Hotel.created_at.desc())
+        .options(
+            selectinload(Hotel.city),
+            selectinload(Hotel.facilities),
+            selectinload(Hotel.photos),
+            selectinload(Hotel.rooms),
+        )
+    )
+    rows, meta = await paginate(db, stmt, page=page, limit=limit)
+    return ok([_serialize(h) for h in rows], meta=meta)
+
+
+@router.get("/manage")
+async def manage_hotels(
+    _: AdminUser,
+    db: DbDep,
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=200),
+) -> dict[str, Any]:
+    stmt = (
+        select(Hotel)
+        .where(Hotel.is_deleted == False)  # noqa: E712
+        .order_by(Hotel.created_at.desc())
         .options(
             selectinload(Hotel.city),
             selectinload(Hotel.facilities),
@@ -274,6 +298,8 @@ async def create_hotel(
 ) -> dict[str, Any]:
     payload = body.model_dump(exclude={"facility_ids"})
     hotel = Hotel(**payload, owner_id=me.id, status=HotelStatus.pending)
+    await _attach_facilities(db, hotel, body.facility_ids)
+    
     db.add(hotel)
     await db.flush()
 
@@ -287,9 +313,36 @@ async def create_hotel(
     if images:
         await _save_photos(db, hotel, images)
 
-    await _attach_facilities(db, hotel, body.facility_ids)
+    admins = (
+        (await db.execute(select(User).where(User.role == Role.admin, User.is_deleted == False)))
+        .scalars()
+        .all()
+    )
+    for admin in admins:
+        db.add(
+            Notification(
+                user_id=admin.id,
+                type=NotificationType.hotel_registered,
+                title="New hotel registered",
+                message=f'"{hotel.name}" has been submitted by an owner and is pending review.',
+                link=f"/admin/hotels/{hotel.id}",
+            )
+        )
+
     await db.commit()
-    await db.refresh(hotel)
+    
+    stmt = (
+        select(Hotel)
+        .where(Hotel.id == hotel.id)
+        .options(
+            selectinload(Hotel.city),
+            selectinload(Hotel.facilities),
+            selectinload(Hotel.policies),
+            selectinload(Hotel.photos),
+            selectinload(Hotel.rooms),
+        )
+    )
+    hotel = (await db.execute(stmt)).scalars().first()
     return ok(_serialize(hotel))
 
 
@@ -303,7 +356,17 @@ async def update_hotel(
     images: list[UploadFile] = File([]),
 ) -> dict[str, Any]:
     hotel = (
-        await db.execute(select(Hotel).where(Hotel.id == hotel_id))
+        await db.execute(
+            select(Hotel)
+            .where(Hotel.id == hotel_id)
+            .options(
+                selectinload(Hotel.city),
+                selectinload(Hotel.facilities),
+                selectinload(Hotel.policies),
+                selectinload(Hotel.photos),
+                selectinload(Hotel.rooms),
+            )
+        )
     ).scalar_one_or_none()
     if not hotel:
         raise NotFound("Hotel not found")
@@ -334,7 +397,6 @@ async def update_hotel(
         await _attach_facilities(db, hotel, body.facility_ids)
 
     await db.commit()
-    await db.refresh(hotel)
     return ok(_serialize(hotel))
 
 
@@ -343,7 +405,17 @@ async def set_status(
     hotel_id: uuid.UUID, body: HotelStatusUpdate, _: AdminUser, db: DbDep
 ) -> dict[str, Any]:
     hotel = (
-        await db.execute(select(Hotel).where(Hotel.id == hotel_id))
+        await db.execute(
+            select(Hotel)
+            .where(Hotel.id == hotel_id)
+            .options(
+                selectinload(Hotel.city),
+                selectinload(Hotel.facilities),
+                selectinload(Hotel.policies),
+                selectinload(Hotel.photos),
+                selectinload(Hotel.rooms),
+            )
+        )
     ).scalar_one_or_none()
     if not hotel:
         raise NotFound("Hotel not found")

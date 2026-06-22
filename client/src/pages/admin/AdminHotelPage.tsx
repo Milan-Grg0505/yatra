@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { LuShieldCheck } from 'react-icons/lu';
 import { toast } from 'sonner';
@@ -6,19 +6,30 @@ import { Badge, Button } from '@/components/atoms';
 import { DataTable, type Column } from '@/components/molecules/DataTable';
 import { ResourceManager } from '@/components/organisms/ResourceManager';
 import { HotelForm } from '@/components/forms';
-import { useAppDispatch, useAppSelector } from '@/hooks';
-import { selectHotel } from '@/features/slices/hotelSlice';
-import { fetchHotelsThunk, deleteHotelThunk } from '@/features/thunks/hotelThunks';
+import { useAppDispatch } from '@/hooks';
+import { deleteHotelThunk } from '@/features/thunks/hotelThunks';
+import { hotelApi } from '@/api/hotel.api';
 import { cn, statusColor } from '@/lib/utils';
 import { ROUTES } from '@/lib/constant';
 import type { Hotel } from '@/types';
 
 export function AdminHotelsPage() {
   const dispatch = useAppDispatch();
-  const { hotels, loading } = useAppSelector(selectHotel);
+  const [hotels, setHotels] = useState<Hotel[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const refresh = () => dispatch(fetchHotelsThunk({ page: 1, limit: 200 }));
-  useEffect(() => { refresh(); }, [dispatch]); // eslint-disable-line
+  const refresh = async () => {
+    setLoading(true);
+    try {
+      const res = await hotelApi.manage(1, 200);
+      setHotels(res.data ?? []);
+    } catch {
+      toast.error('Failed to load hotels');
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => { refresh(); }, []); // eslint-disable-line
 
   const pendingCount = useMemo(() => hotels.filter((h) => h.status === 'pending').length, [hotels]);
 

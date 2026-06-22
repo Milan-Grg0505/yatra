@@ -133,6 +133,7 @@ class NotificationType(str, enum.Enum):
     payment_failed = "payment_failed"
     hotel_approved = "hotel_approved"
     hotel_rejected = "hotel_rejected"
+    hotel_registered = "hotel_registered"
     travel_booking = "travel_booking"
     system = "system"
 

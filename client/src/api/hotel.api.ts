@@ -32,6 +32,9 @@ export const hotelApi = {
       '/hotels/destination',
     ),
 
+  manage: (page = 1, limit = 200) =>
+    api.get<unknown, ApiResponse<Hotel[]>>('/hotels/manage', { params: { page, limit } }),
+
   pending: () => api.get<unknown, ApiResponse<Hotel[]>>('/hotels/pending'),
 
   my: () => api.get<unknown, ApiResponse<Hotel[]>>('/hotels/my'),
