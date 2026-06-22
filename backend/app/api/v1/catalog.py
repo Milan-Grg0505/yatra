@@ -1,8 +1,9 @@
-from app.api.deps import AdminUser
+from app.api.deps import AdminUser, OwnerAdminUser
 from app.utils.pagination import slugify
 from app.schemas.content import BlogIn, BlogOut, HeroIn, HeroOut
 from fastapi import status
-from app.core.exceptions import NotFound
+from app.core.exceptions import Forbidden, NotFound
+from app.models.enums import Role
 import uuid
 from app.api.deps import DbDep
 from fastapi import APIRouter
@@ -22,7 +23,7 @@ from app.schemas.hotel import (
     ServiceOut,
 )
 from app.models.location import City
-from app.models.hotel import Service, Facility, Policy
+from app.models.hotel import Hotel, Service, Facility, Policy
 from app.models.content import Blog
 
 # ============================================================================
@@ -310,8 +311,20 @@ async def policies_get(policy_id: uuid.UUID, db: DbDep) -> dict[str, Any]:
     return ok(PolicyOut.model_validate(p).model_dump(mode="json"))
 
 
+async def _verify_policy_hotel(db, me, hotel_id):
+    if me.role != Role.admin and hotel_id:
+        hotel = (
+            await db.execute(select(Hotel).where(Hotel.id == hotel_id))
+        ).scalar_one_or_none()
+        if not hotel or hotel.owner_id != me.id:
+            raise Forbidden("Not your hotel")
+
+
 @policies_router.post("/add", status_code=status.HTTP_201_CREATED)
-async def policy_create(body: PolicyIn, _: AdminUser, db: DbDep) -> dict[str, Any]:
+async def policy_create(
+    body: PolicyIn, me: OwnerAdminUser, db: DbDep
+) -> dict[str, Any]:
+    await _verify_policy_hotel(db, me, body.hotel_id)
     p = Policy(**body.model_dump())
     db.add(p)
     await db.commit()
@@ -323,7 +336,7 @@ async def policy_create(body: PolicyIn, _: AdminUser, db: DbDep) -> dict[str, An
 async def policy_update(
     policy_id: uuid.UUID,
     body: PolicyIn,
-    _: AdminUser,
+    me: OwnerAdminUser,
     db: DbDep,
 ) -> dict[str, Any]:
     p = (
@@ -331,6 +344,7 @@ async def policy_update(
     ).scalar_one_or_none()
     if not p:
         raise NotFound("Policy not found")
+    await _verify_policy_hotel(db, me, p.hotel_id)
     for k, v in body.model_dump(exclude_unset=True).items():
         setattr(p, k, v)
     await db.commit()
@@ -340,7 +354,7 @@ async def policy_update(
 @policies_router.delete("/delete/{policy_id}")
 async def policy_delete(
     policy_id: uuid.UUID,
-    _: AdminUser,
+    me: OwnerAdminUser,
     db: DbDep,
 ) -> dict[str, Any]:
     p = (
@@ -348,6 +362,7 @@ async def policy_delete(
     ).scalar_one_or_none()
     if not p:
         raise NotFound("Policy not found")
+    await _verify_policy_hotel(db, me, p.hotel_id)
     await db.delete(p)
     await db.commit()
     return ok({"message": "Policy deleted successfully"})
