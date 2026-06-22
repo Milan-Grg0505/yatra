@@ -179,16 +179,18 @@ export function RegisterPropertyPage() {
       if (!hotelId) throw new Error('Hotel creation succeeded but no id returned');
 
       // 2. Create rooms in parallel
+      const toSnake = (data: Record<string, unknown>) =>
+        Object.fromEntries(
+          Object.entries(data).map(([k, v]) => [
+            k.replace(/([A-Z])/g, '_$1').toLowerCase().replace(/^_/, ''),
+            v,
+          ]),
+        );
       await Promise.all(
         rooms.map((r) => {
-          const roomFd = new FormData();
-          Object.entries(r).forEach(([k, v]) => {
-            if (k === 'service_ids' || v === undefined) return;
-            roomFd.append(k, String(v));
-          });
-          roomFd.append('hotel_id', hotelId);
-          (r.service_ids ?? []).forEach((id) => roomFd.append('service_ids[]', id));
-          return roomApi.create(roomFd);
+          const payload = toSnake({ ...r, hotel_id: hotelId });
+          delete (payload as any).service_ids;
+          return roomApi.create(payload);
         }),
       );
 
